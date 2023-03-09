@@ -157,21 +157,25 @@ class WTUNet:
             list_in(str_url)
             list_in('读取数据')
             pyperclip.copy(str_url)
-            ym = requests.post(str_url, headers=self.header, proxies=self.proxies)
+            ym = requests.post(str_url, headers=self.header)
             ym.encoding = 'utf8'
             text = ym.text
             time.sleep(10)
             list_in(text)
-            if self.ping() == 0 or 'success' in text:
+            if 'success' in text:
                 list_in('登入成功')
-                self.status = 1
-                self.xc_status = 1
-                self.cishu = 0
-                return self.autologin()
-            elif '验证码' in text:
+                if self.ping() == 0:
+                    list_in('网络连接成功')
+                    self.status = 1
+                    self.xc_status = 1
+                    self.cishu = 0
+                    return self.autologin()
+                else:
+                    list_in("第" + str(self.cishu + 1) + "次网络接入失败")
+            if '验证码' in text:
                 list_in('验证码错误')
                 return self.login()
-            elif '密码不能为' in text:
+            if '密码不能为' in text:
                 list_in('密钥错误')
         except:
             list_in("第" + str(self.cishu) + "次登入失败")
