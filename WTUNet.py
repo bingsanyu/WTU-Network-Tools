@@ -228,7 +228,6 @@ class WTUNet:
             self.autologin()
 
     def fun_timer(self):
-        icon.run()
         while True:
             if self.xc_status == 1:
                 list_in("每隔10s自动检测网络连通性")
@@ -361,7 +360,7 @@ if __name__ == '__main__':
     window.protocol('WM_DELETE_WINDOW', on_exit)
     login_button = tk.Button(window, text='登入', command=play_login)
     t = threading.Thread(target=WTUNet.fun_timer, daemon=True).start()
-
+    t = threading.Thread(target=icon.run(), daemon=True).start()
     login_button.place(x=150, y=190, width=80, height=30)
     init()
     if WTUNet.save_b.get() == 1:
