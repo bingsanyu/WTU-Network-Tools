@@ -1,4 +1,4 @@
-﻿# -*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import tkinter as tk
 from PIL import Image, ImageTk
 import ctypes
@@ -31,6 +31,7 @@ menu = (MenuItem('显示', show_window, default=True), Menu.SEPARATOR, MenuItem(
 image = Image.open("WTULogo.ico")
 icon = pystray.Icon("icon", image, "校园网工具", menu)
 window = tk.Tk()
+window.protocol('WM_DELETE_WINDOW', on_exit)
 log_list = tk.Listbox(window)
 xxjl = 0
 
@@ -86,6 +87,7 @@ class WTUNet:
             self.config_password = lines[1]
             self.config_auto_login = lines[2]
             self.save_b.set(int(lines[2]))
+            self.proxies = {'http': None, 'https': None}
             if not str(lines[2]):
                 self.save_a.set(0)
             else:
@@ -94,11 +96,11 @@ class WTUNet:
     # 取设备码
     def get_key(self):
         session = requests.session()
-        session.get("http://172.30.1.1/")
+        session.get("http://172.30.1.1/", proxies=self.proxies)
         html_set_cookie = requests.utils.dict_from_cookiejar(session.cookies)
         send_cookie = session.cookies['JSESSIONID']
         self.header = {"Cookie": 'JSESSIONID=' + send_cookie, 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
-        ym = requests.get(self.base_url, headers=self.header)
+        ym = requests.get(self.base_url, headers=self.header, proxies=self.proxies)
         ym.encoding = 'utf8'
         text = ym.text
         list_in("设备码全返回：" + text)
@@ -119,7 +121,7 @@ class WTUNet:
         list_in("验证码开始下载")
         if os.path.exists('yzm.png'):
             os.remove('yzm.png')
-        r = requests.get(self.img_url, headers=self.header)
+        r = requests.get(self.img_url, headers=self.header, proxies=self.proxies)
         if r.status_code == 200:
             img_name = "yzm.png"
             with open(img_name, 'wb') as f:
@@ -155,25 +157,21 @@ class WTUNet:
             list_in(str_url)
             list_in('读取数据')
             pyperclip.copy(str_url)
-            ym = requests.post(str_url, headers=self.header)
+            ym = requests.post(str_url, headers=self.header, proxies=self.proxies)
             ym.encoding = 'utf8'
             text = ym.text
             time.sleep(10)
             list_in(text)
-            if 'success' in text:
+            if self.ping() == 0 or 'success' in text:
                 list_in('登入成功')
-                if self.ping() == 0:
-                    list_in('网络连接成功')
-                    self.status = 1
-                    self.xc_status = 1
-                    self.cishu = 0
-                    return self.autologin()
-                else:
-                    list_in("第" + str(self.cishu + 1) + "次网络接入失败")
-            if '验证码' in text:
+                self.status = 1
+                self.xc_status = 1
+                self.cishu = 0
+                return self.autologin()
+            elif '验证码' in text:
                 list_in('验证码错误')
                 return self.login()
-            if '密码不能为' in text:
+            elif '密码不能为' in text:
                 list_in('密钥错误')
         except:
             list_in("第" + str(self.cishu) + "次登入失败")
@@ -190,7 +188,7 @@ class WTUNet:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'
         }
         try:
-            r = requests.get("http://baidu.com", headers=headers)
+            r = requests.get("http://baidu.com", headers=headers, proxies=self.proxies)
             return 0 if r.status_code == 200 and '百度' in r.text else 1
         except:
             return 1
@@ -357,10 +355,10 @@ if __name__ == '__main__':
 
     # 重新定义点击关闭按钮的处理
 
-    window.protocol('WM_DELETE_WINDOW', on_exit)
     login_button = tk.Button(window, text='登入', command=play_login)
     t = threading.Thread(target=WTUNet.fun_timer, daemon=True).start()
-    t = threading.Thread(target=icon.run(), daemon=True).start()
+    q = threading.Thread(target=icon.run, daemon=True).start()
+
     login_button.place(x=150, y=190, width=80, height=30)
     init()
     if WTUNet.save_b.get() == 1:
