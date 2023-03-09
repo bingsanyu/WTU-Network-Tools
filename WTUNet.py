@@ -228,6 +228,7 @@ class WTUNet:
             self.autologin()
 
     def fun_timer(self):
+        icon.run()
         while True:
             if self.xc_status == 1:
                 list_in("每隔10s自动检测网络连通性")
