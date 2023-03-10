@@ -87,11 +87,11 @@ class WTUNet:
             self.config_password = lines[1]
             self.config_auto_login = lines[2]
             self.save_b.set(int(lines[2]))
-            self.proxies = {'http': None, 'https': None}
             if not str(lines[2]):
                 self.save_a.set(0)
             else:
                 self.save_a.set(1)
+        self.proxies = {'http': None, 'https': None}
 
     # 取设备码
     def get_key(self):
@@ -149,36 +149,36 @@ class WTUNet:
 
     def login(self):
         self.cishu = self.cishu + 1
-        try:
-            list_in("正在进行第" + str(self.cishu) + "次登入操作")
-            str_url = str(self.login_url) + '&userId=' + str(self.config_user) + '&password=' + str(self.config_password) + '&service=&queryString=' + \
-                      str(self.get_key()) + '&operatorPwd=&operatorUserId=&validcode=' + \
-                      str(self.download_img().replace('\n', ''))
-            list_in(str_url)
-            list_in('读取数据')
-            pyperclip.copy(str_url)
-            ym = requests.post(str_url, headers=self.header)
-            ym.encoding = 'utf8'
-            text = ym.text
-            time.sleep(10)
-            list_in(text)
-            if 'success' in text:
-                list_in('登入成功')
-                if self.ping() == 0:
-                    list_in('网络连接成功')
-                    self.status = 1
-                    self.xc_status = 1
-                    self.cishu = 0
-                    return self.autologin()
-                else:
-                    list_in("第" + str(self.cishu + 1) + "次网络接入失败")
-            if '验证码' in text:
-                list_in('验证码错误')
-                return self.login()
-            if '密码不能为' in text:
-                list_in('密钥错误')
-        except:
-            list_in("第" + str(self.cishu) + "次登入失败")
+
+        list_in("正在进行第" + str(self.cishu) + "次登入操作")
+        str_url = str(self.login_url) + '&userId=' + str(self.config_user) + '&password=' + str(self.config_password) + '&service=&queryString=' + \
+                  str(self.get_key()) + '&operatorPwd=&operatorUserId=&validcode=' + \
+                  str(self.download_img().replace('\n', ''))
+        list_in(str_url)
+        list_in('读取数据')
+        pyperclip.copy(str_url)
+        ym = requests.post(str_url, headers=self.header)
+        ym.encoding = 'utf8'
+        text = ym.text
+        time.sleep(10)
+        list_in(text)
+        if 'success' in text:
+            list_in('登入成功')
+            if self.ping() == 0:
+                list_in('网络连接成功')
+                self.status = 1
+                self.xc_status = 1
+                self.cishu = 0
+                return self.autologin()
+            else:
+                list_in("第" + str(self.cishu + 1) + "次网络接入失败")
+        if '验证码' in text:
+            list_in('验证码错误')
+            return self.login()
+        if '密码不能为' in text:
+            list_in('密钥错误')
+        # except:
+        #     list_in("第" + str(self.cishu) + "次登入失败")
         self.status = 0
         if self.cishu == 10:
             list_in("登入失败，请检查账号密钥")
